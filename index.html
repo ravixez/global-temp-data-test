@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASA Zonal Annual Means</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+</head>
+<body style="background-color: rgb(40, 44, 52);">
+
+    <canvas id="chart"></canvas>
+
+    <script>
+        (async function() {
+            const data = await getData();
+
+            const chart = new Chart(
+                document.getElementById('chart'),
+                {
+                    type: 'line',
+                    data: {
+                        labels: data.map(row => row.year),
+                        datasets: [
+                            {
+                                label: 'Global Average Temperature in °C',
+                                data: data.map(row => row.temp),
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgb(126, 198, 153)',
+                                borderWidth: 1,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: function(value, index, values) {
+                                        return value.toFixed(1) + '°'; // Append ° to the y-axis labels
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+
+            // Trigger chart resize on window resize
+            window.addEventListener('resize', () => {
+                chart.resize();
+            });
+        })();
+
+        async function getData() {
+            const response = await fetch('ZonAnn.Ts+dSST.csv');
+            const data = await response.text();
+
+            // split() - separate by line break, slice() - remove the first element of the array (index 0)
+            const table = data.split('\n').slice(1);
+            const newData = [];
+
+            table.forEach(row => {
+                const cols = row.split(',');
+                const year = parseInt(cols[0]);
+                const temp = parseFloat(cols[1]);
+                newData.push({ year, temp });
+            });
+            return newData;
+        }
+    </script>
+</body>
+</html>
